@@ -33,16 +33,19 @@ const eventoDeletarTarefa = () => {
         botao.onclick = (evento) => {
             evento.preventDefault()
 
-            fetch(`http://localhost:8000/api/deletar-tarefa/${botao.getAttribute('tarefa-id')}`, {
-                method: 'delete',
-            })
-            .then(resposta => resposta.json())
-            .then(dado => {
-                if (dado) {
-                    botao.parentElement.parentElement.classList.remove('d-flex')
-                    botao.parentElement.parentElement.classList.add('d-none')
-                }
-            })
+            let resposta = confirm('Quer excluir essa tarefa?')
+
+            if (resposta)
+                fetch(`http://localhost:8000/api/deletar-tarefa/${botao.getAttribute('tarefa-id')}`, {
+                    method: 'delete',
+                })
+                .then(resposta => resposta.json())
+                .then(dado => {
+                    if (dado) {
+                        botao.parentElement.parentElement.classList.remove('d-flex')
+                        botao.parentElement.parentElement.classList.add('d-none')
+                    }
+                })
         }
     })
 }
@@ -59,37 +62,41 @@ formulario.onsubmit = evento => {
 }
 
 // funções
-const listarTarefas = async elemento => {
-    await fetch('http://localhost:8000/api/listar-tarefas')
+const listarTarefas = elemento => {
+    fetch('http://localhost:8000/api/listar-tarefas')
     .then(resposta => resposta.json())
     .then(dados => {
+        dados = dados.reverse()
         let html = ''
 
         dados.forEach(dado => {
-            let span = `<span id="conteudo">${dado.conteudo}</span>`
+            let span = `<span id="conteudo" class="d-flex align-items-center">${dado.conteudo}</span>`
 
             if (dado.status == 'feito')
-                span = `<span id="conteudo" style="text-decoration: line-through">${dado.conteudo}</span>`
+                span = `<span id="conteudo" class="d-flex align-items-center" style="text-decoration: line-through">${dado.conteudo}</span>`
 
             html += `
                 <li class="list-group-item d-flex">
                     ${span}
-                    <div class="ml-auto">
-                        <a id="concluirTarefa" tarefa-id="${dado.id}" href="#">
+                    <div class="row ml-auto">
+                        <a id="concluirTarefa" class="btn btn-success d-flex" tarefa-id="${dado.id}" href="#">
                             <i title="Concluir tarefa" class="material-icons">done</i>
+                            <span> Concluir Tarefa </span>
                         </a>
-                        <a id="deletarTarefa" tarefa-id="${dado.id}" href="#">
+                        <a id="deletarTarefa" class="btn btn-danger d-flex" tarefa-id="${dado.id}" href="#">
                             <i title="Deletar tarefa" class="material-icons">delete</i>
+                            <span> Deletar Tarefa </span>
                         </a>
                     </div>
                 </li>
             `
         })
         elemento.innerHTML = html
+    }).then(() => {
+        eventoConcluirTarefa()
+        eventoDeletarTarefa()
     })
 
-    eventoConcluirTarefa()
-    eventoDeletarTarefa()
 }
 
 const adcionarTarefa = conteudo => {
